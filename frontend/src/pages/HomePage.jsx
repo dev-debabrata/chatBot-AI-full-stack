@@ -1,11 +1,19 @@
-import React from 'react'
+import React from "react";
+import Search from "../components/Search";
+import Login from "../components/auth/Login";
+import SignUp from "../components/auth/SignUp";
 import { Link } from "react-router-dom";
 import Logo from "/logo.png"
-import Search from './Search';
+import Navbar from "../components/layout/Navbar";
 
-const ChatBox = () => {
+const HomePage = () => {
+    // const [showLogin, setShowLogin] = useState(false);
+    // const [showSignUp, setShowSignUp] = useState(false);
+
     return (
-        <div className=' flex flex-col'>
+        <div className="min-h-screen bg-white flex flex-col">
+
+            <Navbar />
 
             {/* Main content */}
             <main className="flex-1 flex flex-col items-center justify-center px-4">
@@ -23,8 +31,9 @@ const ChatBox = () => {
                     read our Privacy Policy.
                 </p>
             </main>
-        </div>
-    )
-}
 
-export default ChatBox
+        </div>
+    );
+};
+
+export default HomePage;
