@@ -15,10 +15,10 @@ import UpgardeProPage from "./pages/UpgardeProPage";
 
 
 const App = () => {
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch current user (auth status). Returns user object or null.
   const { data: authUser, isLoading } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
@@ -26,7 +26,6 @@ const App = () => {
         const res = await axiosInstance.get("/auth/me");
         return res.data;
       } catch (err) {
-        // if unauthorized or other error, return null (not logged in)
         return null;
       }
     },
@@ -34,21 +33,17 @@ const App = () => {
     refetchOnWindowFocus: false,
   });
 
-  // avoid UI flash while auth status is loading
   if (isLoading) return null;
 
-  // Logout: call backend logout (if you have one) and clear authUser cache
   const handleLogout = async () => {
     try {
-      // call logout endpoint if exists (optional). Adjust if your API differs.
+
       await axiosInstance.post("/auth/logout");
     } catch (err) {
-      // ignore errors — still clear local auth state
+
       console.warn("Logout request failed", err?.response?.data || err);
     } finally {
-      // mark user as logged out in React Query cache
       queryClient.setQueryData(["authUser"], null);
-      // optionally invalidate queries
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
       navigate("/", { replace: true });
     }
@@ -56,10 +51,7 @@ const App = () => {
 
   return (
     <Routes>
-      {/* Public Home Page */}
       <Route path="/" element={<HomePage />} />
-
-      {/* Protected routes wrapped with Layout - only available when authUser exists */}
       <Route
         element={
           <ProtectedRoute authUser={authUser}>
