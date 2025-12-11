@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '/logo.png';
 import Login from "../auth/Login";
@@ -9,6 +9,21 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
     const [showLogin, setShowLogin] = useState(false);
     const [showSignUp, setShowSignUp] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+
+    const userMenuRef = useRef(null);
+
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+                setShowUserMenu(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
 
     return (
         <nav className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-gray-200 relative">
@@ -54,7 +69,10 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
 
                 {/* Avatar + Dropdown when authenticated */}
                 {isAuthenticated && (
-                    <div className="relative">
+                    <div
+                        className="relative"
+                        ref={userMenuRef}
+                    >
                         {/* Avatar button */}
                         <button
                             onClick={() => setShowUserMenu(prev => !prev)}

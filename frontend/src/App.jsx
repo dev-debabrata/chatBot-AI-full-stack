@@ -1,37 +1,119 @@
+// src/App.jsx
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import Community from "./pages/CommunityPage";
+import axiosInstance from "./lib/axios"; // adjust path if needed
+import ProtectedRoute from "./context/ProtectedRoute";
+import Layout from "./components/layout/Layout";
+
 import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
-import ProBotPage from "./pages/ProBotPage";
-import Layout from "./components/layout/Layout";
+import Community from "./pages/CommunityPage";
+import UpgardeProPage from "./pages/UpgardeProPage";
+
 
 const App = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch current user (auth status). Returns user object or null.
+  const { data: authUser, isLoading } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: async () => {
+      try {
+        const res = await axiosInstance.get("/auth/me");
+        return res.data;
+      } catch (err) {
+        // if unauthorized or other error, return null (not logged in)
+        return null;
+      }
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // avoid UI flash while auth status is loading
+  if (isLoading) return null;
+
+  // Logout: call backend logout (if you have one) and clear authUser cache
+  const handleLogout = async () => {
+    try {
+      // call logout endpoint if exists (optional). Adjust if your API differs.
+      await axiosInstance.post("/auth/logout");
+    } catch (err) {
+      // ignore errors — still clear local auth state
+      console.warn("Logout request failed", err?.response?.data || err);
+    } finally {
+      // mark user as logged out in React Query cache
+      queryClient.setQueryData(["authUser"], null);
+      // optionally invalidate queries
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      navigate("/", { replace: true });
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <Routes>
+      {/* Public Home Page */}
+      <Route path="/" element={<HomePage />} />
 
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-
-        <Route path="/*" element={
-          <Layout>
-            <Routes>
-              <Route path="/community" element={<Community />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/probot" element={<ProBotPage />} />
-            </Routes>
-          </Layout>
-        } />
-
-      </Routes>
-    </div>
+      {/* Protected routes wrapped with Layout - only available when authUser exists */}
+      <Route
+        element={
+          <ProtectedRoute authUser={authUser}>
+            <Layout authUser={authUser} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/upgradepro" element={<UpgardeProPage />} />
+      </Route>
+    </Routes>
   );
 };
 
 export default App;
+
+
+
+// import React from "react";
+// import { Routes, Route } from "react-router-dom";
+
+// import Community from "./pages/CommunityPage";
+// import HomePage from "./pages/HomePage";
+// import Dashboard from "./pages/DashboardPage";
+// import ProfilePage from "./pages/ProfilePage";
+// import ProBotPage from "./pages/ProBotPage";
+// import Layout from "./components/layout/Layout";
+
+// const App = () => {
+//   return (
+//     <div className="min-h-screen">
+
+//       <Routes>
+//         <Route path="/" element={<HomePage />} />
+
+//         <Route path="/*" element={
+//           <Layout>
+//             <Routes>
+//               <Route path="/community" element={<Community />} />
+//               <Route path="/dashboard" element={<Dashboard />} />
+//               <Route path="/profile" element={<ProfilePage />} />
+//               <Route path="/probot" element={<ProBotPage />} />
+//             </Routes>
+//           </Layout>
+//         } />
+
+//       </Routes>
+//     </div>
+//   );
+// };
+
+// export default App;
 
 // import React from "react";
 // import { Routes, Route } from "react-router-dom";

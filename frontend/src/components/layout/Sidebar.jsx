@@ -164,11 +164,11 @@ const Sidebar = () => {
 
                 <div className="flex flex-col">
                     <Link
-                        to="/probot"
+                        to="/upgradepro"
                         className="flex items-center gap-2 p-3 rounded-full text-[#282828] cursor-pointer hover:bg-[#e2e6eb]"
                     >
                         <Crown size={18} />
-                        {extended ? <p>DarkBot Pro</p> : null}
+                        {extended ? <p>Upgarde Pro</p> : null}
                     </Link>
 
                     <button
@@ -188,7 +188,7 @@ const Sidebar = () => {
                         {/* Close button */}
                         <button
                             onClick={() => setOpenSettingsModal(false)}
-                            className="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-200"
+                            className="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-200 cursor-pointer"
                         >
                             <X size={20} />
                         </button>

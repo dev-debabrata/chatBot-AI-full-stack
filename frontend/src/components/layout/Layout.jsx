@@ -1,45 +1,82 @@
-import Sidebar from './Sidebar'
-import Navbar from './Navbar'
-import { useNavigate } from 'react-router-dom';
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
+import { Outlet, useNavigate } from "react-router-dom";
 
-const Layout = ({ children }) => {
-
+const Layout = ({ authUser, onLogout }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        navigate('/');
+        onLogout();
+        navigate("/");
     };
 
     return (
-        <div className='flex h-screen'>
+        <div className="flex h-screen">
             <Sidebar />
-            {/* <div className="flex flex-col w-full h-full">
-                <Navbar
-                    isAuthenticated={true}
-                    onLogout={handleLogout}
-                />
 
-                <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
-                    {children}
-                </main>
-            </div> */}
-            {/* <div className="flex flex-col w-full h-full">
+            <div className="flex flex-col w-full">
                 <Navbar
-                    isAuthenticated={true}
+                    isAuthenticated={!!authUser}
                     onLogout={handleLogout}
                 />
                 <main className="flex-1 overflow-y-auto p-4">
-                    {children}
+                    <Outlet />
                 </main>
-            </div> */}
-            <div className="flex flex-col w-full">
-                <Navbar
-                    isAuthenticated={true}
-                    onLogout={handleLogout}
-                />
-                <main className="flex-1 overflow-y-auto p-4">{children}</main>
             </div>
         </div>
     );
 };
+
 export default Layout;
+
+
+// import Sidebar from './Sidebar'
+// import Navbar from './Navbar'
+// import { useNavigate } from 'react-router-dom';
+
+// const Layout = ({ children }) => {
+
+//     const navigate = useNavigate();
+
+//     const handleLogout = () => {
+//         navigate('/');
+//     };
+
+//     return (
+//         <div className='flex h-screen'>
+//             <Sidebar />
+
+//             <div className="flex flex-col w-full">
+//                 <Navbar
+//                     isAuthenticated={true}
+//                     onLogout={handleLogout}
+//                 />
+//                 <main className="flex-1 overflow-y-auto p-4">{children}</main>
+//             </div>
+//         </div>
+//     );
+// };
+// export default Layout;
+
+
+
+
+// {/* <div className="flex flex-col w-full h-full">
+//                 <Navbar
+//                     isAuthenticated={true}
+//                     onLogout={handleLogout}
+//                 />
+
+//                 <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
+//                     {children}
+//                 </main>
+//             </div> */}
+// {/* <div className="flex flex-col w-full h-full">
+//                 <Navbar
+//                     isAuthenticated={true}
+//                     onLogout={handleLogout}
+//                 />
+//                 <main className="flex-1 overflow-y-auto p-4">
+//                     {children}
+//                 </main>
+//             </div> */}

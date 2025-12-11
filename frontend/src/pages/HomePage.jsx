@@ -23,7 +23,7 @@ const HomePage = () => {
                 </h1>
 
                 {/* Chat/Search box */}
-                <Search />
+                {/* <Search /> */}
 
                 {/* Footer text like ChatGPT */}
                 <p className="mt-10 text-[11px] md:text-xs text-gray-500 text-center max-w-2xl">
