@@ -1,8 +1,6 @@
-# promptify_app/views.py
 import os
 from dotenv import load_dotenv
 
-# load .env (if present)
 load_dotenv()
 
 from openai import OpenAI
@@ -25,7 +23,6 @@ from promptify_app.serializers import ChatMessageSerializer, ChatSerializer
 def get_openai_client():
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        # clear message — callers can choose to handle this gracefully
         raise RuntimeError(
             "OPENAI_API_KEY not set. Set OPENAI_API_KEY env var or add it to a .env file."
         )
@@ -43,10 +40,7 @@ def _date_vars():
 
 
 def createChatTitle(user_message):
-    """
-    Safely create a short title using OpenAI. If the API isn't configured or fails,
-    fall back to a substring of the user message so startup/migrations remain safe.
-    """
+
     try:
         client = get_openai_client()
     except RuntimeError:
@@ -76,11 +70,7 @@ User = get_user_model()
 @csrf_exempt
 @api_view(["POST"])
 def signup_view(request):
-    """
-    Create a new user.
-    Expects: { first_name, username, email, password }
-    Returns 201 with user data on success.
-    """
+   
     data = request.data
     username = (data.get("username") or data.get("email") or "").strip()
     email = (data.get("email") or "").strip()
@@ -121,10 +111,7 @@ def signup_view(request):
 @csrf_exempt
 @api_view(["POST"])
 def login_view(request):
-    """
-    Login with username & password. Expects { username, password }.
-    Returns clear codes to let frontend react (user_not_found, invalid_credentials, etc.).
-    """
+   
     data = request.data
     username = (data.get("username") or "").strip()
     password = data.get("password")
@@ -161,10 +148,7 @@ def logout_view(request):
 # ===== auth_me endpoint =====
 @api_view(["GET"])
 def auth_me(request):
-    """
-    Dev-friendly: returns anonymous info if not logged in.
-    Replace with @permission_classes([IsAuthenticated]) to make it strict.
-    """
+   
     user = getattr(request, "user", None)
     if not user or user.is_anonymous:
         return Response({"detail": "Anonymous"}, status=status.HTTP_200_OK)
@@ -252,125 +236,3 @@ def seven_days_chat(request):
     return Response(serializer.data)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# from openai import OpenAI
-# from django.shortcuts import render, get_object_or_404
-# from rest_framework import status
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from promptify_app.models import Chat, ChatMessage
-# from promptify_app.serializers import ChatMessageSerializer, ChatSerializer
-# from django.utils import timezone
-# from datetime import timedelta
-
-
-# # Create your views here.
-# client = OpenAI()
-
-
-# now = timezone.now()
-# today = now.date()
-# yesterday = today - timedelta(days=1)
-# seven_days_ago = today - timedelta(days=7)
-# thirty_days_ago = today - timedelta(days=30)
-
-
-# def createChatTitle(user_message):
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[
-#                 {"role": "assistant", "content": "Give a short, descriptive title for this conversation in not more than 5 words."},
-#                 {"role": "user", "content": user_message},
-#             ]
-#         )
-#         title = response.choices[0].message.content.strip()
-#     except Exception: 
-#         title = user_message[:50]
-#     return title
-
-
-
-# @api_view(['POST'])
-# def prompt_gpt(request):
-#     chat_id = request.data.get("chat_id")
-#     content = request.data.get("content")
-
-#     if not chat_id:
-#         return Response({"error": "Chat ID was not provided."}, status=400)
-
-#     if not content:
-#         return Response({"error": "There was no prompt passed."}, status=400)
-
-#     chat, created = Chat.objects.get_or_create(id=chat_id)
-#     chat.title = createChatTitle(content)
-#     chat.save()
-
-#     ChatMessage.objects.create(role="user", chat=chat, content=content)
-
-#     chat_messages = chat.messages.order_by("created_at")[:10]
-
-#     openai_messages = [{"role": message.role, "content": message.content} for message in chat_messages]
-
-#     if not any(message["role"]=="assistant" for message in openai_messages):
-#         openai_messages.insert(0, {"role": "assistant", "content": "You are a helpful assistant."})
-    
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=openai_messages
-#         )
-#         openai_reply = response.choices[0].message.content
-#     except Exception as e:
-#         return Response({"error": f"An error from Openai {str(e)}"}, status=500)
-    
-#     ChatMessage.objects.create(role="assistant", content=openai_reply, chat=chat)
-#     return Response({"reply": openai_reply}, status=status.HTTP_201_CREATED)
-
-
-
-# @api_view(["GET"])
-# def get_chat_messages(request, pk):
-#     # chat = Chat.objects.get(id=pk)
-#     chat = get_object_or_404(Chat, id=pk)
-#     chatmessages = chat.messages.all()
-#     serializer = ChatMessageSerializer(chatmessages, many=True)
-#     return Response(serializer.data)
-
-
-
-# @api_view(["GET"])
-# def todays_chat(request):
-#     chats = Chat.objects.filter(created_at__date=today).order_by("-created_at")[:10]
-#     serializer = ChatSerializer(chats, many=True)
-#     return Response(serializer.data)
-
-
-# @api_view(["GET"])
-# def yesterdays_chat(request):
-#     chats = Chat.objects.filter(created_at__date=yesterday).order_by("-created_at")[:10]
-#     serializer = ChatSerializer(chats, many=True)
-#     return Response(serializer.data)
-
-
-
-# @api_view(["GET"])
-# def seven_days_chat(request):
-#     chats = Chat.objects.filter(created_at__lt=yesterday, created_at__gte=seven_days_ago).order_by("-created_at")[:10]
-#     serializer = ChatSerializer(chats, many=True)
-#     return Response(serializer.data)
