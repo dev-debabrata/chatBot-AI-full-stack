@@ -16,8 +16,8 @@ export const useAuth = () => {
             }
         },
         retry: false,
-        refetchOnWindowFocus: true, // Check for session validity when tab is focused
-        staleTime: 0, // Always check server, don't cache "logged in" state
+        refetchOnWindowFocus: true,
+        staleTime: 0,
     });
 
     // 2. Logout Mutation
@@ -26,14 +26,10 @@ export const useAuth = () => {
             await axiosInstance.post("/auth/logout/");
         },
         onSuccess: () => {
-            // 🔥 FORCE CLEAR THE DATA IMMEDIATELY
             queryClient.setQueryData(["authUser"], null);
-
-            // Ensure no background refetches bring old data back
             queryClient.removeQueries({ queryKey: ["authUser"] });
         },
         onError: () => {
-            // If API fails, force logout on frontend anyway
             queryClient.setQueryData(["authUser"], null);
         },
     });

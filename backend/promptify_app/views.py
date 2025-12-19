@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import re
+
 from openai import OpenAI
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -66,28 +68,46 @@ def createChatTitle(user_message):
 # ---- Authentication endpoints ----
 User = get_user_model()
 
-
 @csrf_exempt
 @api_view(["POST"])
 def signup_view(request):
-   
     data = request.data
-    username = (data.get("username") or data.get("email") or "").strip()
-    email = (data.get("email") or "").strip()
+
+    email = (data.get("email") or "").strip().lower()
+    username = (data.get("username") or email).strip()
     password = data.get("password")
     first_name = data.get("first_name", "")
 
-    if not username or not password:
-        return Response({"code": "missing_fields", "message": "username and password are required"},
-                        status=status.HTTP_400_BAD_REQUEST)
+    if not email or not password:
+        return Response(
+            {"code": "missing_fields", "message": "email and password are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    # Prevent duplicate usernames/emails
+    # ✅ Gmail-only validation
+    gmail_regex = r"^[a-zA-Z0-9._%+-]+@gmail\.com$"
+    if not re.match(gmail_regex, email):
+        return Response(
+            {
+                "code": "invalid_email",
+                "message": "Only Gmail addresses are allowed (example: debu@gmail.com)"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Prevent duplicate email
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {"code": "email_exists", "message": "Email already exists"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Prevent duplicate username
     if User.objects.filter(username=username).exists():
-        return Response({"code": "username_exists", "message": "username already exists"},
-                        status=status.HTTP_400_BAD_REQUEST)
-    if email and User.objects.filter(email=email).exists():
-        return Response({"code": "email_exists", "message": "email already exists"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"code": "username_exists", "message": "Username already exists"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user = User.objects.create_user(
         username=username,
@@ -95,6 +115,52 @@ def signup_view(request):
         password=password,
         first_name=first_name,
     )
+
+    login(request, user)
+
+    return Response(
+        {
+            "code": "ok",
+            "message": "User created",
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        },
+        status=status.HTTP_201_CREATED
+    )
+
+
+# User = get_user_model()
+
+
+# @csrf_exempt
+# @api_view(["POST"])
+# def signup_view(request):
+   
+#     data = request.data
+#     username = (data.get("username") or data.get("email") or "").strip()
+#     email = (data.get("email") or "").strip()
+#     password = data.get("password")
+#     first_name = data.get("first_name", "")
+
+#     if not username or not password:
+#         return Response({"code": "missing_fields", "message": "username and password are required"},
+#                         status=status.HTTP_400_BAD_REQUEST)
+
+#     # Prevent duplicate usernames/emails
+#     if User.objects.filter(username=username).exists():
+#         return Response({"code": "username_exists", "message": "username already exists"},
+#                         status=status.HTTP_400_BAD_REQUEST)
+#     if email and User.objects.filter(email=email).exists():
+#         return Response({"code": "email_exists", "message": "email already exists"},
+#                         status=status.HTTP_400_BAD_REQUEST)
+
+#     user = User.objects.create_user(
+#         username=username,
+#         email=email,
+#         password=password,
+#         first_name=first_name,
+#     )
 
     # Optionally auto-login the new user (session cookie will be set)
     login(request, user)
